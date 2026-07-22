@@ -81,7 +81,7 @@
    - 传入: 产品 URL/截图 + 用户画像 + 对应的 Simulator agent 定义
    - **不传入**: 任何项目内部信息
 5. **等待所有子 Agent 完成**: 收集所有报告
-6. **调用 feedback-compiler**: 将所有报告传给 feedback-compiler 做冲突裁决和汇总
+6. **调用 feedback-compiler**: 将所有报告传给 feedback-compiler 做冲突裁决和汇总（裁决规则详见 `simulators/feedback-compiler.md`，核心原则: "Simulator > Guardian"，真实用户反馈优先于理论检查）
 7. **输出**: 验收报告，保存到 `.quality-guardian/reports/YYYY-MM-DD-acceptance-report.md`
 8. **更新 history.json**: 记录本次各维度得分
 
