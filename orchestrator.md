@@ -217,12 +217,11 @@
 
 #### 检测方法
 
-1. **Chrome/Chromium MCP 检测**:
-   - 尝试调用 `mcp__plugin_superpowers-chrome_chrome__use_browser` 的 `list_tabs` 或 `navigate` 操作
-   - 如果返回 "Failed to auto-start Chrome" → Chrome 不可用
-   - 如果返回正常 → Chrome MCP 可用 ✅
-
-2. **本地浏览器检测**:
+1. **Chrome/Chromium 自动启动**:
+   - 首先：运行 `bash scripts/start-chrome.sh 9222` —— 这个脚本会自动搜索系统中所有可用的 Chromium（包括 Playwright 自带的、系统安装的、macOS Chrome、Windows Edge）
+   - 如果脚本成功（返回 exit 0）→ Chrome 已在 9222 端口就绪 ✅
+   - 如果脚本失败 → 尝试调用 Chrome MCP 的 `restart_chrome` 操作
+   - 如果仍然失败 → 进入环境诊断，给出具体安装命令
    - Linux: `which google-chrome chromium chromium-browser 2>/dev/null`
    - Mac: `ls /Applications/Google\ Chrome.app 2>/dev/null`
    - Windows (WSL): `powershell.exe -Command "Test-Path 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'"` 
