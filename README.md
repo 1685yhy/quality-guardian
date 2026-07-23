@@ -111,18 +111,18 @@ quality-guardian/
 └── case-studies/             ← 真实项目验收案例
 ```
 
-## 适用场景（全部支持 L1 自动化）
+## 适用场景（全部 ⭐⭐⭐⭐⭐ L1 自动化）
 
 | 场景 | Agent | 自动化方式 |
 |------|-------|----------|
-| 🌐 Web 应用 / SaaS | `browser-user.md` | Chrome MCP 自动操作 |
-| 📱 微信小程序 | `miniapp-user.md` | DevTools MCP 自动操作 |
-| 💻 命令行工具 / CLI | `cli-tester.md` | 命令自动测试 |
-| 🔌 API / 后端服务 | `api-tester.md` | curl 自动测试 |
-| 🖥️ 桌面应用 (Electron/Qt/.NET) | `desktop-tester.md` | Web 版/CLI/无障碍 API |
-| 🎮 游戏 (Unity/Unreal) | `browser-user.md` | WebGL 构建 Chrome MCP |
-| 📸 原生 App (无 Web 版) | `visual-user.md` | L2 截图分析 |
-| 📝 无法自动化的产品 | `scenario-player.md` | L3 测试剧本 |
+| 🌐 Web 应用 / SaaS | `browser-user.md` | Chrome MCP |
+| 📱 微信小程序 | `miniapp-user.md` | DevTools MCP |
+| 💻 命令行工具 / CLI | `cli-tester.md` | 命令测试 |
+| 🔌 API / 后端服务 | `api-tester.md` | curl 测试 |
+| 📲 原生 App (iOS/Android) | `native-app-tester.md` | adb + xcrun |
+| 🎮 游戏 (Unity/Unreal/Godot) | `game-tester.md` | WebGL→引擎→截图 |
+| 🖥️ 桌面应用 (Electron/Qt/.NET) | `desktop-tester.md` | Web版→CLI→UIA |
+| 📸 无自动化条件 | `visual-user.md` + `scenario-player.md` | 截图 + 测试剧本 |
 
 ## 贡献
 
