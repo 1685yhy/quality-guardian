@@ -355,8 +355,9 @@
 有 CLI 入口（可执行命令）        →  🔥 simulators/cli-tester.md (命令测试)
 有 API 端点（REST/gRPC/GraphQL） →  🔥 simulators/api-tester.md (curl 测试)
 有桌面应用（Electron/Qt/.NET）   →  🔥 simulators/desktop-tester.md (先找 Web 版)
-有游戏（WebGL 构建）             →  🔥 simulators/browser-user.md (Chrome MCP)
-有游戏（无 WebGL）               →  📸 simulators/visual-user.md (截图分析)
+有原生移动 App (adb/xcrun)       →  🔥 simulators/native-app-tester.md (adb/xcrun 自动化)
+有游戏（任意引擎）                →  🔥 simulators/game-tester.md (WebGL→引擎→截图 多路径)
+有桌面应用（Electron/Qt/.NET）   →  🔥 simulators/desktop-tester.md (Web版→CLI→UIA)
 有截图/录屏                     →  📸 simulators/visual-user.md (视觉分析)
 以上全部没有                     →  📝 simulators/scenario-player.md (测试剧本)
 ```
