@@ -1,0 +1,41 @@
+{
+  "version": "1.1",
+  "project": "<项目名称>",
+  "project_type": "<自动检测的项目类型>",
+  "created": "YYYY-MM-DD",
+  "updated": "YYYY-MM-DD",
+  "history": [
+    {
+      "date": "YYYY-MM-DD",
+      "phase": "pre-acceptance",
+      "report_file": "YYYY-MM-DD-pre-acceptance-standard.md",
+      "scores": {
+        "reachability": null,
+        "understandability": null,
+        "reliability": null,
+        "responsiveness": null,
+        "delight": null,
+        "inclusivity": null,
+        "overall": null
+      },
+      "state": "standards_generated",
+      "summary": "开发前验收标准生成 — 无评分数据"
+    },
+    {
+      "date": "YYYY-MM-DD",
+      "phase": "acceptance",
+      "report_file": "YYYY-MM-DD-acceptance-report.md",
+      "scores": {
+        "reachability": 65,
+        "understandability": 47,
+        "reliability": 44,
+        "responsiveness": 94,
+        "delight": 95,
+        "inclusivity": 43,
+        "overall": 63
+      },
+      "state": "completed",
+      "summary": "开发后盲测验收 — 2个P0需在上线前修复"
+    }
+  ]
+}

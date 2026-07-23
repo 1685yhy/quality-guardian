@@ -73,7 +73,16 @@
 
 ### 执行步骤
 
-1. **确认产品可访问**: 获取产品 staging/预发布 URL 或截图/录屏
+0. **验证阶段一先决条件**:
+   a. 检查 `.quality-guardian/reports/` 中是否存在 `*-pre-acceptance-standard.md` 文件
+   b. **如果存在**: 加载验收标准清单，用于 Phase 3 对比
+   c. **如果不存在**: 向用户显示:
+      "阶段一（开发前验收标准）尚未运行。Phase 3 盲测验收需要验收标准作为基线。
+      - 输入 'auto' → 自动运行阶段一（读取需求文档生成标准，然后继续 Phase 3）
+      - 输入 'skip' → 在没有预验收标准基线的情况下继续（报告将标注「无基线比较」）
+      - 输入 'cancel' → 取消本次验收，请先运行 /quality-guardian pre"
+   d. 如果用户选择 auto: 执行阶段一的完整流程（项目扫描→产品推理→维度映射→生成验收标准→生成用户画像），输出保存到 `.quality-guardian/reports/YYYY-MM-DD-pre-acceptance-standard.md`，然后继续步骤 1
+1. **确认产品可访问**: 提供平台特定的素材采集指南（参见下方「平台素材采集指南」），获取产品 staging/预发布 URL 或截图/录屏。**不要回退到代码审查**——盲测验收唯一可接受的素材是运行中的产品。
 2. **加载验收标准**: 从阶段一的报告中加载验收标准清单
 3. **并行调度 Guardian 团队**:
    - 为每个维度创建独立子 Agent（无文件系统访问权限）
@@ -88,7 +97,21 @@
 5. **等待所有子 Agent 完成**: 收集所有报告
 6. **调用 feedback-compiler**: 将所有报告传给 feedback-compiler 做冲突裁决和汇总（裁决规则详见 `simulators/feedback-compiler.md`，核心原则: "Simulator > Guardian"，真实用户反馈优先于理论检查）
 7. **输出**: 验收报告，保存到 `.quality-guardian/reports/YYYY-MM-DD-acceptance-report.md`
-8. **更新 history.json**: 记录本次各维度得分
+8. **更新 history.json**:
+   - 检查 `.quality-guardian/reports/history.json` 是否存在；不存在则从 `templates/history.json` 模板创建
+   - 从 feedback-compiler 输出的验收报告中提取各维度得分
+   - 向 `history` 数组追加新条目:
+     ```json
+     {
+       "date": "YYYY-MM-DD",
+       "phase": "acceptance",
+       "report_file": "YYYY-MM-DD-acceptance-report.md",
+       "scores": { "reachability": XX, "understandability": XX, "reliability": XX, "responsiveness": XX, "delight": XX, "inclusivity": XX, "overall": XX },
+       "state": "completed",
+       "summary": "开发后盲测验收 — [简要结论]"
+     }
+     ```
+   - 更新 `updated` 字段为当前日期
 
 ### 调度模板
 
@@ -108,18 +131,59 @@
 
 ---
 
-## 阶段四: 上线后 — 体验回溯
+## 阶段四: 上线后 — 体验回溯与校准
 
 ### 目标
-收集真实用户反馈，对照验收报告进行回溯分析。
+收集真实用户反馈，对照 Phase 3 的 Simulator 预测进行回溯分析，计算校准指标，产出校准数据以改进未来的模拟准确度。
 
 ### 执行步骤
 
-1. **收集真实反馈**: 获取用户反馈数据（评价/投诉/埋点数据）
-2. **调用 feedback-compiler**: 
-   - 对照阶段三的验收报告 → 哪些预估问题真的发生了？
-   - 对照 Simulator 的模拟反馈 → 模拟判断和真实用户一致吗？
-3. **输出**: 回溯报告 + Agent 校准建议，保存到 `.quality-guardian/reports/YYYY-MM-DD-review-retrospective.md`
+1. **收集真实反馈**:
+   - 获取用户反馈数据（应用商店评分、客服工单、用户访谈、埋点异常数据）
+   - 如果用户暂无真实反馈数据，询问是否跳过校准——跳过则在报告中标注"未校准"
+
+2. **加载历史数据**:
+   - 加载 `.quality-guardian/reports/history.json` 获取历次得分趋势
+   - 加载 Phase 3 验收报告，提取所有 Guardian 检查项和 Simulator 反馈
+
+3. **结构化对比**（逐项对照）:
+   对 Phase 3 中发现的每一个问题（Guardian 检查项 + Simulator 反馈），对照真实用户数据：
+   - 这个问题在真实用户中出现了吗？→ 是/否
+   - 严重程度判断一致吗？→ 一致/高估/低估
+   - 是否发现了 Phase 3 完全没预测到的新问题？→ 有/无
+
+4. **计算校准指标**:
+   - **准确率** = Simulator 预测且被真实用户确认的问题数 / Simulator 总预测问题数
+   - **误报率** = Simulator 预测但真实用户未遭遇的问题数 / Simulator 总预测问题数
+   - **遗漏率** = Simulator 未预测但真实用户遭遇的问题数 / 真实用户总问题数
+   - **维度级准确率** = 按 6 维度分别计算上述指标
+
+5. **逐画像校准**:
+   对每个 Simulator 画像，评估其预测质量：
+   - 该画像发现的问题中，哪些是真实用户也遇到的？哪些不是？
+   - 该画像的"问题匹配率"与其他画像相比如何？
+
+6. **输出**:
+   a. 校准报告 → `.quality-guardian/reports/YYYY-MM-DD-calibration-report.md`（参考 `templates/calibration-report.md`）
+   b. 回溯总结 → `.quality-guardian/reports/YYYY-MM-DD-review-retrospective.md`
+   c. 更新 `history.json`（追加 Phase 4 条目，包含校准指标摘要）
+
+---
+
+## 平台素材采集指南
+
+一旦确定项目类型，自动引导用户提供对应平台的产品运行素材（用于盲测验收）：
+
+| 检测到的平台 | 指南文件 | 采集方式 |
+|------------|---------|---------|
+| 微信小程序 (`app.json`) | `platforms/mini-program.md` | 微信开发者工具截图/录屏 或 真机截图 |
+| iOS App (`.xcodeproj`) | `platforms/native-app.md` | Xcode Simulator 截图 或 TestFlight |
+| Android App (`.gradle`) | `platforms/native-app.md` | Android Emulator 截图 或 ADB 录屏 |
+| 游戏 (`.unity`/`.unreal`/`.godot`) | `platforms/game.md` | 编辑器 Play 模式截图/录屏 |
+| Web 应用 (`package.json`) | 无需指南 | L1 Chrome MCP 直接访问 URL |
+| 未知类型 | 询问用户 | 根据用户回答选择对应指南 |
+
+**核心规则**: 如果 Phase 3 没有可访问的 URL 且用户也没有提供截图/录屏，**不要回退到代码审查**。改为引导用户参考对应的 `platforms/` 指南文件。
 
 ---
 
