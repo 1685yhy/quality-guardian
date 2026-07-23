@@ -82,15 +82,12 @@
       - 输入 'skip' → 在没有预验收标准基线的情况下继续（报告将标注「无基线比较」）
       - 输入 'cancel' → 取消本次验收，请先运行 /quality-guardian pre"
    d. 如果用户选择 auto: 执行阶段一的完整流程（项目扫描→产品推理→维度映射→生成验收标准→生成用户画像），输出保存到 `.quality-guardian/reports/YYYY-MM-DD-pre-acceptance-standard.md`，然后继续步骤 1
-1. **自动化获取产品访问方式**（按「自动化优先策略」决策树执行）:
-   a. 根据项目类型，从自动化决策树顶部开始尝试:
-      - Web 应用 → 直接读取 `package.json` 找 dev server URL，或用 Chrome MCP 打开 `http://localhost:<常见端口>`
-      - 微信小程序 → 先找 Web/H5 版本 → 查 DevTools CLI → 最后才要素材
-      - 原生 App → 先找 Web/PWA 版本 → 查 Simulator CLI → 最后才要素材
-      - 游戏 → 先找 WebGL 构建 → 查 Editor 自动化 → 最后才要素材
-   b. 如果自动化成功: 记录产品的实际访问 URL，传给子 Agent
-   c. 如果自动化全部失败: 按平台兜底指南引导用户提供截图/录屏
-   d. **绝对不做的**: 回退到读源代码做"代码审查式验收"
+1. **自动发现并连接产品**:
+   a. **扫描本地端口**: 检查 3000/5173/8080/4200 等常见 dev server 端口是否在监听
+   b. **读取启动配置**: 从 `package.json`/`vite.config.js`/`next.config.js` 找到 dev server 端口
+   c. **如果 dev server 没运行**: 尝试自动启动（`npm run dev` 后台执行，等待端口就绪）
+   d. **按「自动化决策树」选择操作方式**: 能浏览器打开 → L1；能 CLI 启动 → 启动后 L1；都不行 → L2 兜底
+   e. **绝对不做的**: 回退到读源代码做"代码审查式验收"
 2. **加载验收标准**: 从阶段一的报告中加载验收标准清单
 3. **并行调度 Guardian 团队**:
    - 为每个维度创建独立子 Agent（无文件系统访问权限）
@@ -182,7 +179,37 @@
 
 **核心原则：框架应尽可能自己操作产品，只在确实无法自动化时才请用户提供素材。**
 
-### 自动化决策树
+**测试阶段也能操作——产品在本地跑着，框架只需要知道去哪找。**
+
+### 第一步：自动发现本地运行环境
+
+在尝试任何操作之前，先扫描项目中**已经在运行**的本地服务：
+
+1. **扫描本地端口**: 检查常见 dev server 端口是否在监听：
+   ```
+   Web 常见端口: 3000, 5173, 8080, 3001, 4200, 5000, 8888, 9000
+   React: 3000 | Vue: 5173 | Next.js: 3000 | Vite: 5173 | Angular: 4200
+   ```
+
+2. **读取项目启动配置**: 从项目文件中找到 dev server 信息：
+   - `package.json` → `scripts.dev` / `scripts.start` / `scripts.serve`
+   - `vite.config.js` → `server.port`
+   - `next.config.js` → dev server 默认 3000
+   - `angular.json` → `serve.options.port`
+   - 小程序 `project.config.json` → `urlCheck` / `devServer`
+
+3. **如果 dev server 没在运行**: 尝试启动它：
+   - 读 `package.json` scripts → 执行 `npm run dev`（后台运行）
+   - 等待端口变为 listening 状态
+   - 然后 Chrome MCP 连接
+
+4. **检查模拟器/预览工具**: 
+   - 微信开发者工具: 检查进程 `wechatwebdevtools` 是否在运行
+   - Xcode Simulator: `xcrun simctl list devices | grep Booted`
+   - Android Emulator: `adb devices | grep emulator`
+   - Unity Editor: 检查进程 `Unity` 是否在运行
+
+### 第二步：自动化决策树
 
 ```
 检测到平台类型
