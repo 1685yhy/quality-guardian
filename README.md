@@ -88,12 +88,15 @@ quality-guardian/
 │   ├── responsiveness.md     ← 响应性
 │   ├── delight.md            ← 愉悦性
 │   └── inclusivity.md        ← 包容性
-├── simulators/               ← 用户模拟 Agent 团队
+├── simulators/               ← 用户模拟 Agent 团队（8 个）
 │   ├── persona-generator.md  ← 画像生成器
-│   ├── browser-user.md       ← L1: 浏览器真实操作
+│   ├── browser-user.md       ← L1: Web 浏览器操作
+│   ├── miniapp-user.md       ← L1: 小程序 DevTools 操作
+│   ├── cli-tester.md         ← L1: CLI 命令行测试
+│   ├── api-tester.md         ← L1: API 端点测试
+│   ├── desktop-tester.md     ← L1: 桌面应用测试
 │   ├── visual-user.md        ← L2: 截图/录屏分析
 │   ├── scenario-player.md    ← L3: 测试剧本
-│   ├── api-tester.md         ← API/后端服务测试
 │   └── feedback-compiler.md  ← 反馈编译器（冲突裁决）
 ├── templates/                ← 输出模板
 │   ├── acceptance-report.md  ← 验收报告
@@ -108,14 +111,18 @@ quality-guardian/
 └── case-studies/             ← 真实项目验收案例
 ```
 
-## 适用场景
+## 适用场景（全部支持 L1 自动化）
 
-- ✅ Web 应用 / SaaS 平台
-- ✅ 微信小程序 / 支付宝小程序
-- ✅ 移动 App (iOS / Android)
-- ✅ 游戏 (Unity / Unreal / 小程序游戏)
-- ✅ API / 后端服务
-- ✅ 任何有用户界面的软件项目
+| 场景 | Agent | 自动化方式 |
+|------|-------|----------|
+| 🌐 Web 应用 / SaaS | `browser-user.md` | Chrome MCP 自动操作 |
+| 📱 微信小程序 | `miniapp-user.md` | DevTools MCP 自动操作 |
+| 💻 命令行工具 / CLI | `cli-tester.md` | 命令自动测试 |
+| 🔌 API / 后端服务 | `api-tester.md` | curl 自动测试 |
+| 🖥️ 桌面应用 (Electron/Qt/.NET) | `desktop-tester.md` | Web 版/CLI/无障碍 API |
+| 🎮 游戏 (Unity/Unreal) | `browser-user.md` | WebGL 构建 Chrome MCP |
+| 📸 原生 App (无 Web 版) | `visual-user.md` | L2 截图分析 |
+| 📝 无法自动化的产品 | `scenario-player.md` | L3 测试剧本 |
 
 ## 贡献
 
