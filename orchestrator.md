@@ -142,14 +142,16 @@
 2. **加载验收标准**: 从阶段一的报告中加载验收标准清单
 3. **并行调度 Guardian 团队**:
    - 为每个维度创建独立子 Agent（无文件系统访问权限）
-   - **仅传入**: 产品 URL/截图 + 验收标准清单 + 该维度的 Guardian agent 定义文件路径
+   - **仅传入**: 产品 URL/截图 + 验收标准清单 + 深度级别(L1-L4) + 该维度的 Guardian agent 定义文件路径
    - **严禁传入**: 任何项目源文件、API 文档、数据库 schema、开发讨论、配置文件、环境变量
+   - Guardian 会根据深度级别自动调整检查项数量（L1=3-5, L2=8-12, L3=15-25, L4=全覆盖）
 4. **并行调度 Simulator 团队**:
    - 先调用 persona-generator 生成 3-5 个画像
    - 对每个画像，根据项目类型选择 L1/L2/L3
    - 为每个画像创建独立子 Agent（无文件系统访问权限）
-   - **仅传入**: 产品 URL/截图/录屏 + 用户画像 + 对应的 Simulator agent 定义文件路径
+   - **仅传入**: 产品 URL/截图/录屏 + 用户画像 + 深度级别(L1-L4) + 对应的 Simulator agent 定义文件路径
    - **严禁传入**: 任何项目内部信息、源代码、设计文档、API 文档
+   - L3+ 时 Simulator 会执行多轮测试（正常/3G/首次/回访）和系统性边界探索
 5. **等待所有子 Agent 完成**: 收集所有报告
 6. **调用 feedback-compiler**: 将所有报告传给 feedback-compiler 做冲突裁决和汇总（裁决规则详见 `simulators/feedback-compiler.md`，核心原则: "Simulator > Guardian"，真实用户反馈优先于理论检查）
 7. **输出**: 验收报告，保存到 `.quality-guardian/reports/YYYY-MM-DD-acceptance-report.md`
