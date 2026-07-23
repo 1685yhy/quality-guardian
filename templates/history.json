@@ -35,7 +35,14 @@
         "overall": 63
       },
       "state": "completed",
-      "summary": "开发后盲测验收 — 2个P0需在上线前修复"
+      "summary": "开发后盲测验收 — 2个P0需在上线前修复",
+      "issues": [
+        {"id": "P0-1", "severity": "P0", "dimension": "reliability", "title": "定价前后端不一致", "status": "open"},
+        {"id": "P0-2", "severity": "P0", "dimension": "reliability", "title": "JWT密钥默认值未替换", "status": "open"},
+        {"id": "P1-1", "severity": "P1", "dimension": "reachability", "title": "会员入口在首页不可见", "status": "open"},
+        {"id": "P1-2", "severity": "P1", "dimension": "understandability", "title": "会员对比表数据与实际不一致", "status": "open"},
+        {"id": "P1-3", "severity": "P1", "dimension": "reliability", "title": "消耗操作无二次确认", "status": "open"}
+      ]
     }
   ]
 }

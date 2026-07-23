@@ -140,6 +140,18 @@
       - 实在无法登录 → 在验收报告中标记"认证阻塞"，说明尝试了哪些方式，验收登录页本身的体验
       - 不要停下来问用户要账号——先自己想办法
 2. **加载验收标准**: 从阶段一的报告中加载验收标准清单
+2.5. **回归检查（关键——做深做透的核心）**:
+   a. 加载 `history.json`，找到上一次验收的所有 P0 和 P1 问题
+   b. 将这些问题注入到 Guardian 和 Simulator 的检查清单中——**优先验证已修复的问题是否真的修好了**
+   c. 每个 Guardian 收到: "上次验收发现以下问题，请验证是否已修复: [列表]"
+   d. 每个 Simulator 收到: "上次验收中以下场景出过问题，请重点重测: [列表]"
+   e. 验收报告中新增「回归结果」章节——逐条标注每个历史问题的当前状态:
+      - ✅ 已修复 — 问题不再出现
+      - ⚠️ 部分修复 — 有改善但未完全解决
+      - ❌ 未修复 — 问题仍然存在
+      - 🔄 新问题 — 本次新发现（非历史问题）
+   f. **这是深度测试的核心价值**: 每次验收不仅检查新产品，也验证旧问题。
+      多次验收叠加→积累历史→每次比上次更精准→产品质量持续提升
 3. **并行调度 Guardian 团队**:
    - 为每个维度创建独立子 Agent（无文件系统访问权限）
    - **仅传入**: 产品 URL/截图 + 验收标准清单 + 深度级别(L1-L4) + 该维度的 Guardian agent 定义文件路径
@@ -166,10 +178,14 @@
        "report_file": "YYYY-MM-DD-acceptance-report.md",
        "scores": { "reachability": XX, "understandability": XX, "reliability": XX, "responsiveness": XX, "delight": XX, "inclusivity": XX, "overall": XX },
        "state": "completed",
-       "summary": "开发后盲测验收 — [简要结论]"
+       "summary": "开发后盲测验收 — [简要结论]",
+       "issues": [
+         {"id": "P0-1", "severity": "P0", "dimension": "维度", "title": "问题描述", "status": "open"}
+       ]
      }
      ```
-   - 更新 `updated` 字段为当前日期
+   - 从 feedback-compiler 的迭代建议中提取所有 P0/P1 问题填入 issues 数组
+   - 下次验收时，步骤 2.5 会读取此列表进行回归检查
 
 ### 调度模板
 
