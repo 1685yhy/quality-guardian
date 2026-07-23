@@ -91,7 +91,54 @@ document.querySelectorAll('img').forEach(img => {
 // (已在规则1中覆盖)
 ```
 
-### 🔴 规则 5: 深度级别强制执行
+### 🔴 规则 5: 性能测量（L2+ 必须执行）
+
+使用 `eval` 在页面加载后收集性能数据：
+
+```js
+// Core Web Vitals
+const nav = performance.getEntriesByType('navigation')[0];
+const paint = performance.getEntriesByType('paint');
+const lcp = paint.find(p => p.name === 'largest-contentful-paint');
+const fcp = paint.find(p => p.name === 'first-contentful-paint');
+// CLS
+let cls = 0;
+new PerformanceObserver(l => { l.getEntries().forEach(e => { if (!e.hadRecentInput) cls += e.value; }); }).observe({type:'layout-shift',buffered:true});
+
+console.log('PERF:', JSON.stringify({
+  domReady: nav.domContentLoadedEventEnd - nav.startTime,
+  loadComplete: nav.loadEventEnd - nav.startTime,
+  FCP: fcp?.startTime,
+  LCP: lcp?.startTime,
+  CLS: cls,
+  resourceCount: performance.getEntriesByType('resource').length
+}));
+```
+
+**L3+ 额外要求**: 用 Chrome DevTools Network throttling 模拟 Slow 3G 后再测一遍。
+
+### 🔴 规则 6: 安全 Header 检查（L3+ 必须执行）
+
+使用 `eval` 检查响应头中的安全配置：
+
+```js
+// Check security-related headers via fetch
+fetch(window.location.href).then(r => {
+  const headers = {};
+  ['Content-Security-Policy','X-Frame-Options','X-Content-Type-Options',
+   'Strict-Transport-Security','Referrer-Policy','Permissions-Policy'].forEach(h => {
+    headers[h] = r.headers.get(h) || 'MISSING';
+  });
+  console.log('SECURITY:', JSON.stringify(headers));
+});
+```
+
+安全 Header 评分:
+- 4+ 个存在 → 良好
+- 2-3 个 → 需改进
+- 0-1 个 → 严重缺失（标记为 P1）
+
+### 🔴 规则 7: 深度级别强制执行
 
 Orchestrator 会传入深度级别。你必须严格遵守对应的测试范围：
 

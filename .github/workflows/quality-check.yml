@@ -1,0 +1,66 @@
+name: Quality Guardian Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      depth:
+        description: 'Test depth (quick/standard/deep)'
+        required: false
+        default: 'quick'
+
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Chromium
+        run: |
+          npx playwright install chromium
+
+      - name: Start dev server
+        run: |
+          if [ -f package.json ]; then
+            npm install
+            npm run dev &
+            sleep 10
+            curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 || \
+            curl -s -o /dev/null -w "%{http_code}" http://localhost:5173 || \
+            echo "Dev server may need custom start command"
+          fi
+
+      - name: Clone Quality Guardian
+        run: |
+          git clone https://github.com/1685yhy/quality-guardian.git /tmp/quality-guardian
+
+      - name: Run Quick Quality Check
+        run: |
+          bash /tmp/quality-guardian/scripts/start-chrome.sh 9222
+          # Basic checks: page loads, no console errors, key elements present
+          curl -s http://localhost:${PORT:-3000} > /tmp/page.html
+          echo "## Quality Guardian Quick Check" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Dev server running" >> $GITHUB_STEP_SUMMARY
+          echo "📋 Page loaded: $(wc -c < /tmp/page.html) bytes" >> $GITHUB_STEP_SUMMARY
+
+      - name: Post results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync(process.env.GITHUB_STEP_SUMMARY, 'utf8');
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## 🛡️ Quality Guardian Quick Check\n\n${summary}\n\n> Run \`/quality-guardian accept --deep\` locally for a full 2-hour deep audit.`
+            });

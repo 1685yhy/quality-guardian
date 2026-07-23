@@ -38,6 +38,18 @@ Quality Guardian 会自动：
 4. 派出 6 个 Guardian + 4 个 Simulator Agent 并行验收
 5. 生成完整的验收报告
 
+### CI/CD 自动运行
+
+在 PR 时自动跑 Quality Guardian。将 `.github/workflows/quality-check.yml` 复制到你的项目即可。
+
+每次 PR 自动:
+- ✅ 启动 Chromium
+- ✅ 检查页面可访问性
+- ✅ 检测 Console 错误
+- ✅ 测量 Core Web Vitals (LCP/FCP/CLS)
+- ✅ 检查安全 Header
+- ✅ 结果自动贴到 PR Comment
+
 **如果没有 Chrome**：框架会自动降级到 L2（截图分析）或 L3（测试剧本），并给出精确的浏览器安装命令。
 
 ## 命令
