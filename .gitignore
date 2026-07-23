@@ -1,0 +1,16 @@
+# Runtime reports (generated per project)
+.quality-guardian/reports/
+
+# SDD development artifacts
+.superpowers/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Chrome temp files
+/tmp/qg-*
+
+# IDE
+.vscode/
+.idea/

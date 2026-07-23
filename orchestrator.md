@@ -222,10 +222,11 @@
    - 如果脚本成功（返回 exit 0）→ Chrome 已在 9222 端口就绪 ✅
    - 如果脚本失败 → 尝试调用 Chrome MCP 的 `restart_chrome` 操作
    - 如果仍然失败 → 进入环境诊断，给出具体安装命令
-   - Linux: `which google-chrome chromium chromium-browser 2>/dev/null`
-   - Mac: `ls /Applications/Google\ Chrome.app 2>/dev/null`
-   - Windows (WSL): `powershell.exe -Command "Test-Path 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'"` 
-   - 如果以上都无 → 浏览器不可用，跳到 L2/L3 方案
+   - **注意**: `start-chrome.sh` 的路径相对于 quality-guardian 目录。如果当前工作目录是项目根目录，脚本路径为 `.claude/quality-guardian/scripts/start-chrome.sh`
+
+2. **本地浏览器检测**（Chrome MCP 失败时使用）:
+   - 如果 Chrome 无法自动启动，检查用户系统中有哪些浏览器
+   - 引导用户手动启动浏览器并打开产品 URL，用 L2 方案分析截图
 
 3. **微信开发者工具检测**:
    - Windows: `powershell.exe -Command "Test-Path 'C:\Program Files (x86)\Tencent\微信web开发者工具\cli.bat'"`
