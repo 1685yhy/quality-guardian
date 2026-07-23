@@ -347,15 +347,21 @@
 #### 2.2 选择测试策略（优先级从高到低）
 
 ```
-发现了什么？                     →  用什么方式测试
+发现了什么？                     →  调度哪个 Agent
 ─────────────────────────────────────────────────
-有 URL（localhost 或公网）       →  🔥 L1: Chrome MCP 自动浏览器操作
-有 CLI 入口（可执行命令）        →  🔥 L1: 运行命令，测试输入/输出/错误
-有 API 端点（REST/gRPC/GraphQL） →  🔥 L1: 自动发请求，验证响应
-有截图/录屏                     →  📸 L2: 视觉分析（框架分析你提供的截图）
-有项目文件但无运行实例           →  📸 L2: 分析代码结构 + 设计文件
-以上全部没有                     →  📝 L3: 生成测试剧本，请用户手动测试
+有 Web URL（localhost 或公网）    →  🔥 simulators/browser-user.md (Chrome MCP)
+有微信小程序 + weapp-dev MCP     →  🔥 simulators/miniapp-user.md (DevTools 自动化)
+有微信小程序（无 MCP）           →  📸 simulators/visual-user.md (截图分析)
+有 CLI 入口（可执行命令）        →  🔥 simulators/cli-tester.md (命令测试)
+有 API 端点（REST/gRPC/GraphQL） →  🔥 simulators/api-tester.md (curl 测试)
+有桌面应用（Electron/Qt/.NET）   →  🔥 simulators/desktop-tester.md (先找 Web 版)
+有游戏（WebGL 构建）             →  🔥 simulators/browser-user.md (Chrome MCP)
+有游戏（无 WebGL）               →  📸 simulators/visual-user.md (截图分析)
+有截图/录屏                     →  📸 simulators/visual-user.md (视觉分析)
+以上全部没有                     →  📝 simulators/scenario-player.md (测试剧本)
 ```
+
+**关键**: L1 自动操作永远优先。找不到 L1 路径时，用 L2 截图。L2 也做不到时，用 L3 测试剧本。**绝不回退到读源代码。**
 
 **关键**: L1 永远优先。自己找 URL、自己启动服务、自己发现测试方式。3 次尝试都失败后再报告用户（说明试了什么、为什么失败），不要回退到读源代码冒充验收。
 
