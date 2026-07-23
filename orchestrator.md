@@ -327,20 +327,76 @@
     └── 未知 → 询问用户平台类型 → 套用对应决策树
 ```
 
-### 环境诊断报告
+### 环境诊断与自动修复
 
-当自动化失败时，不要笼统地说"请提供截图"。给出具体诊断：
+当 Chrome MCP 不可用时，不要只报错。根据用户的操作系统，给出**可复制粘贴执行**的修复命令。用户不需要理解这些命令在做什么——复制、粘贴、回车，然后 Chrome MCP 就能用了。
 
-| 检测项 | 如果不可用 | 对应用户操作 |
-|--------|----------|------------|
-| Chrome/Chromium | 未安装或无法启动 | `sudo apt install chromium-browser` 或安装 Google Chrome |
-| Chrome MCP 连接 | 9222 端口无响应 | `chromium --remote-debugging-port=9222 &` |
-| 微信 DevTools CLI | 未找到 cli.bat/cli | 安装微信开发者工具: https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html |
-| Xcode Simulator | `xcrun simctl` 无输出 | 安装 Xcode + 启动 Simulator |
-| Android Emulator | `adb devices` 为空 | 启动 Android Emulator 或连接真机 |
-| Unity Editor | 进程不存在 | 打开 Unity 项目并进入 Play Mode |
+#### 自动检测 OS
 
-**关键**: 框架会告诉用户**具体哪个环节出了问题**以及**怎么修**，而不是一句"请截图"。
+先判断当前环境：
+- `uname -s` 含 `Darwin` → macOS
+- `uname -r` 含 `WSL` 或 `/proc/sys/fs/binfmt_misc/WSLInterop` 存在 → WSL
+- 其他 → Linux
+
+#### macOS
+
+如果 Chrome 未安装:
+```
+brew install --cask google-chrome
+```
+
+启动 Chrome 调试模式（已安装但没开调试端口）:
+```
+open -a "Google Chrome" --args --remote-debugging-port=9222
+```
+
+#### Linux (含 WSL)
+
+如果 Chromium 未安装:
+```
+sudo apt update && sudo apt install -y chromium-browser
+```
+
+如果 Chromium 已安装但启动失败，尝试:
+```
+chromium-browser --remote-debugging-port=9222 --no-sandbox --headless=new --disable-gpu --user-data-dir=/tmp/cr-qg about:blank &
+```
+
+如果 WSL 中 Chromium 无法启动（常见于 WSL2）:
+```
+# WSL 用户: 如果你在 Windows 上安装了 Chrome 或 Edge，可以直接用:
+# 在 Windows 侧打开 PowerShell 或 CMD，运行:
+#   start msedge --remote-debugging-port=9222 --remote-debugging-address=0.0.0.0 about:blank
+# 然后告诉 Quality Guardian "Edge 已启动在 9222 端口"
+```
+
+#### Windows (原生 Claude Code)
+
+```
+# 用 Edge（Windows 自带，无需安装）:
+start msedge --remote-debugging-port=9222 --remote-debugging-address=0.0.0.0 about:blank
+
+# 或用 Chrome:
+start chrome --remote-debugging-port=9222 about:blank
+```
+
+#### 检测 Chrome MCP 连接
+
+启动浏览器后，验证连接:
+```
+curl -s http://localhost:9222/json/version
+```
+
+如果返回 JSON（含 `"Browser": "Chrome/xxx"` 或 `"Browser": "Edg/xxx"`）→ 连接成功 ✅
+
+如果无响应 → 浏览器没启动或用了不同的端口。再试一次。
+
+#### 如果始终无法自动启动
+
+这不是框架的失败。以下是兜底方案（按优先级）:
+1. 用户手动打开 Chrome/Edge → 地址栏输入 `chrome://version` 确认浏览器可用
+2. 用 L2 方案: 用户提供截图/录屏，框架做视觉分析（静态页面可达到 80% 的验收覆盖率）
+3. 用 L3 方案: 框架生成测试剧本，用户按剧本手动操作后反馈
 
 当 L1/L2 自动化可行时，Simulator Agent 的行为规则详见各自的 agent 定义文件（`simulators/browser-user.md`、`simulators/visual-user.md`）。
 
