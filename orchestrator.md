@@ -82,7 +82,15 @@
       - 输入 'skip' → 在没有预验收标准基线的情况下继续（报告将标注「无基线比较」）
       - 输入 'cancel' → 取消本次验收，请先运行 /quality-guardian pre"
    d. 如果用户选择 auto: 执行阶段一的完整流程（项目扫描→产品推理→维度映射→生成验收标准→生成用户画像），输出保存到 `.quality-guardian/reports/YYYY-MM-DD-pre-acceptance-standard.md`，然后继续步骤 1
-1. **确认产品可访问**: 提供平台特定的素材采集指南（参见下方「平台素材采集指南」），获取产品 staging/预发布 URL 或截图/录屏。**不要回退到代码审查**——盲测验收唯一可接受的素材是运行中的产品。
+1. **自动化获取产品访问方式**（按「自动化优先策略」决策树执行）:
+   a. 根据项目类型，从自动化决策树顶部开始尝试:
+      - Web 应用 → 直接读取 `package.json` 找 dev server URL，或用 Chrome MCP 打开 `http://localhost:<常见端口>`
+      - 微信小程序 → 先找 Web/H5 版本 → 查 DevTools CLI → 最后才要素材
+      - 原生 App → 先找 Web/PWA 版本 → 查 Simulator CLI → 最后才要素材
+      - 游戏 → 先找 WebGL 构建 → 查 Editor 自动化 → 最后才要素材
+   b. 如果自动化成功: 记录产品的实际访问 URL，传给子 Agent
+   c. 如果自动化全部失败: 按平台兜底指南引导用户提供截图/录屏
+   d. **绝对不做的**: 回退到读源代码做"代码审查式验收"
 2. **加载验收标准**: 从阶段一的报告中加载验收标准清单
 3. **并行调度 Guardian 团队**:
    - 为每个维度创建独立子 Agent（无文件系统访问权限）
@@ -170,20 +178,62 @@
 
 ---
 
-## 平台素材采集指南
+## 自动化优先策略
 
-一旦确定项目类型，自动引导用户提供对应平台的产品运行素材（用于盲测验收）：
+**核心原则：框架应尽可能自己操作产品，只在确实无法自动化时才请用户提供素材。**
 
-| 检测到的平台 | 指南文件 | 采集方式 |
-|------------|---------|---------|
-| 微信小程序 (`app.json`) | `platforms/mini-program.md` | 微信开发者工具截图/录屏 或 真机截图 |
-| iOS App (`.xcodeproj`) | `platforms/native-app.md` | Xcode Simulator 截图 或 TestFlight |
-| Android App (`.gradle`) | `platforms/native-app.md` | Android Emulator 截图 或 ADB 录屏 |
-| 游戏 (`.unity`/`.unreal`/`.godot`) | `platforms/game.md` | 编辑器 Play 模式截图/录屏 |
-| Web 应用 (`package.json`) | 无需指南 | L1 Chrome MCP 直接访问 URL |
-| 未知类型 | 询问用户 | 根据用户回答选择对应指南 |
+### 自动化决策树
 
-**核心规则**: 如果 Phase 3 没有可访问的 URL 且用户也没有提供截图/录屏，**不要回退到代码审查**。改为引导用户参考对应的 `platforms/` 指南文件。
+```
+检测到平台类型
+    │
+    ├── Web 应用 → 🔥 L1 自动操作: Chrome MCP 打开 URL，自主点击/输入/浏览
+    │
+    ├── 微信小程序 → 🔥 先尝试自动操作:
+    │       ├── 步骤1: 查找项目中是否有 Web/H5 版本（检查是否有 web/、h5/、www/ 目录或 package.json 中的 web 脚本）
+    │       │   └── 有 → L1 Chrome MCP 自动操作 Web 版
+    │       ├── 步骤2: 查找项目中的 dev server 配置（app.json → devServer、project.config.json → urlCheck）
+    │       │   └── 有 → 尝试用 Chrome MCP 连接 dev server URL
+    │       ├── 步骤3: 检查微信开发者工具 CLI 是否可用
+    │       │   └── Windows: `cli.bat auto --project <路径> --auto-port <端口>`
+    │       │   └── Mac: `/Applications/wechatwebdevtools.app/Contents/MacOS/cli auto --project <路径>`
+    │       │   └── 可用 → 启动开发者工具预览，用 Chrome MCP 操作预览窗口
+    │       └── 全部失败 → L2 兜底: 请用户提供截图/录屏
+    │
+    ├── 原生 App → 🔥 先尝试自动操作:
+    │       ├── 步骤1: 查找项目中的 Web/PWA/H5 版本
+    │       │   └── 有 → L1 Chrome MCP 自动操作 Web 版
+    │       ├── 步骤2: iOS → 检查 Xcode Simulator 是否运行中
+    │       │   └── 运行中 → 尝试 `xcrun simctl` 截图自动化
+    │       └── 全部失败 → L2 兜底: 请用户提供截图/录屏
+    │
+    ├── 游戏 → 🔥 先尝试自动操作:
+    │       ├── 步骤1: 查找项目中的 WebGL/HTML5 构建版本
+    │       │   └── 有 → L1 Chrome MCP 自动操作
+    │       ├── 步骤2: Unity → 检查是否有 Play Mode 自动化测试脚本
+    │       └── 全部失败 → L2 兜底: 请用户提供截图/录屏
+    │
+    └── 未知 → 询问用户平台类型 → 套用对应决策树
+```
+
+### 自动化操作规则
+
+当 L1/L2 自动化可行时，Simulator Agent 应该：
+1. **自主探索**: 不只执行预设脚本——像真实用户一样自由浏览、点击、探索
+2. **遇到阻塞不放弃**: 如果某个按钮点不了或页面加载慢，记录这个体验问题，然后尝试其他路径
+3. **记录完整路径**: 每一步操作的截图 + 页面内容 + 感受，写入体验日志
+4. **用完报告**: 操作完成后立即输出体验日志，不等所有 Agent 结束
+
+### 各平台兜底指南
+
+当自动化全部失败时，引导用户提供素材（详见 `platforms/` 目录）：
+
+| 平台 | 自动化优先级 | 兜底指南 |
+|------|------------|---------|
+| Web 应用 | L1 Chrome MCP（默认成功） | 几乎不需要兜底 |
+| 微信小程序 | Web版 → DevTools CLI → 截图 | `platforms/mini-program.md` |
+| iOS/Android App | Web版 → Simulator CLI → 截图 | `platforms/native-app.md` |
+| 游戏 | WebGL版 → Editor脚本 → 截图 | `platforms/game.md` |
 
 ---
 
