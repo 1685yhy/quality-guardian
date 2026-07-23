@@ -243,7 +243,20 @@
     └── 未知 → 询问用户平台类型 → 套用对应决策树
 ```
 
-### 自动化操作规则
+### 环境诊断报告
+
+当自动化失败时，不要笼统地说"请提供截图"。给出具体诊断：
+
+| 检测项 | 如果不可用 | 对应用户操作 |
+|--------|----------|------------|
+| Chrome/Chromium | 未安装或无法启动 | `sudo apt install chromium-browser` 或安装 Google Chrome |
+| Chrome MCP 连接 | 9222 端口无响应 | `chromium --remote-debugging-port=9222 &` |
+| 微信 DevTools CLI | 未找到 cli.bat/cli | 安装微信开发者工具: https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html |
+| Xcode Simulator | `xcrun simctl` 无输出 | 安装 Xcode + 启动 Simulator |
+| Android Emulator | `adb devices` 为空 | 启动 Android Emulator 或连接真机 |
+| Unity Editor | 进程不存在 | 打开 Unity 项目并进入 Play Mode |
+
+**关键**: 框架会告诉用户**具体哪个环节出了问题**以及**怎么修**，而不是一句"请截图"。
 
 当 L1/L2 自动化可行时，Simulator Agent 应该：
 1. **自主探索**: 不只执行预设脚本——像真实用户一样自由浏览、点击、探索
