@@ -117,6 +117,35 @@ console.log('PERF:', JSON.stringify({
 
 **L3+ 额外要求**: 用 Chrome DevTools Network throttling 模拟 Slow 3G 后再测一遍。
 
+### Lighthouse 审计 (L3+ 自动执行)
+
+在性能测量后，运行 Lighthouse 获取标准化评分:
+
+```bash
+npx lighthouse <URL> --output=json --chrome-flags="--no-sandbox --headless" --quiet
+```
+
+解析 JSON 输出，提取:
+- Performance score (0-100)
+- Accessibility score (0-100)
+- Best Practices score (0-100)
+- SEO score (0-100)
+
+与行业基准对比（参考 framework/competitive-benchmarks.md）
+
+输出格式:
+```markdown
+### Lighthouse 评分
+| 维度 | 评分 | 行业定位 |
+|------|------|---------|
+| Performance | 85 | 前 15% (高于电商均值 62) |
+| Accessibility | 72 | 前 40% |
+| Best Practices | 90 | 前 10% |
+| SEO | 88 | 前 15% |
+```
+
+> 注意: Lighthouse 的 Accessibility 评分不等同于 QG 的包容性维度，但可作为交叉验证参考。Lighthouse Performance 评分映射到 QG 响应性维度的辅助数据。
+
 ### 🔴 规则 6: 安全 Header 检查（L3+ 必须执行）
 
 使用 `eval` 检查响应头中的安全配置：

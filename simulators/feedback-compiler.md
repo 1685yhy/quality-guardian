@@ -55,6 +55,28 @@
 - 哪些超出预期？🟣
 - 哪些是新发现的问题？（之前没想到）
 
+### 视觉回归检测 (Phase 4 子步骤)
+
+如果本次和上次验收都有截图，自动执行视觉回归检测：
+
+1. **截图收集**: 从 screenshots/current/{项目名}/ 和 screenshots/baselines/{项目名}/ 中收集对比对
+2. **像素级对比**: 使用 ImageMagick 或 pixelmatch 检测差异像素比例
+   ```bash
+   # ImageMagick 方法
+   compare -metric AE -fuzz 3% baseline.png current.png diff.png
+   # pixelmatch 方法 (Node.js)
+   # pixelmatch(baseline, current, diff, width, height, {threshold: 0.1})
+   ```
+3. **差异判定**:
+   - 差异 < 0.5% → 记录为"微调"，不标记问题
+   - 差异 0.5%-5% → 标记为"视觉变更" (P2)
+   - 差异 > 5% → 标记为"重大视觉变更，需人工审查" (P1)
+4. **差异报告**: 在验收报告的"与前期对比"章节下新增"视觉回归检测"子章节，包含:
+   - Baseline / Current / Diff 三图对比
+   - 每个变更页面的差异比例和判定
+   - 差异截图保存到 screenshots/diffs/ 目录
+5. **自动问题标记**: 视觉变更自动转换为问题条目加入迭代建议清单
+
 ## 输出格式
 
 按 `templates/acceptance-report.md` 模板输出验收报告，同时输出：
